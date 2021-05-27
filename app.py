@@ -8,7 +8,6 @@ import librosa
 from pydub import AudioSegment
 import librosa.display
 import numpy as np
-import imagehash
 from tempfile import mktemp
 import pylab
 
@@ -30,6 +29,7 @@ class Shazam(QtWidgets.QMainWindow):
         self.songsLabel = [self.song1, self.song2]
         self.paths = []
 
+        self.New_window.triggered.connect( self.make_new_window)
         self.Browse_songs.triggered.connect(lambda: self.browse())
 
     def browse(self):
@@ -54,8 +54,11 @@ class Shazam(QtWidgets.QMainWindow):
             self.wavesongs[i], self.samplingFrequencies[i] = librosa.load(
                 waveName)
 
-        
 
+        
+    def make_new_window(self):
+        self.new_window = Shazam()
+        self.new_window.show()
 
 
 def main():
