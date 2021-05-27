@@ -70,6 +70,7 @@ class Shazam(QtWidgets.QMainWindow):
                               self.wavesongs[0], self.wavesongs[1] * (1-mixingRatio))
         self.spectrogram()
 
+<<<<<<< HEAD
     # def spectrogram(self):
     #     D = librosa.amplitude_to_db(
     #         np.abs(librosa.stft(self.newSong)), ref=np.max)
@@ -96,6 +97,26 @@ class Shazam(QtWidgets.QMainWindow):
         for i in range(2):
             self.saveImage(self.featuresMethods[i]+'.png',
                            self.features[i].T, None, self.samplingFrequencies[0])
+=======
+    def Mixer(self):
+        mixingRatio = self.mixingSlider.value() / 100
+        self.newSong = mixingRatio * \
+            self.wavsongs[0] + (1-mixingRatio) * self.wavesongs[1]
+        self.spectrogram()
+
+    def sepctrogram(self):
+        spectro = librosa.amplitude_to_db(
+            np.abs(librosa.stft(self.newSong)), ref=np.max)
+        self.saveImage("mixingSpectrogram.png", spectro, "linear",
+                       22050)  # 22050 is the default
+        self.extractFeatures()
+        
+        
+        
+    def make_new_window(self):
+        self.new_window = Shazam()
+        self.new_window.show()
+>>>>>>> 36ff0a494bcc52fda4b529054780c1e77cbb4645
 
 
 def main():
