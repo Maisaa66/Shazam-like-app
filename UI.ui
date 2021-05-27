@@ -82,17 +82,6 @@ background-color: rgb(47, 47, 77);</string>
         </property>
        </spacer>
       </item>
-      <item row="5" column="2">
-       <widget class="QLabel" name="label_4">
-        <property name="styleSheet">
-         <string notr="true">color: rgb(255, 255, 255);
-font: 9pt &quot;MS Shell Dlg 2&quot;;</string>
-        </property>
-        <property name="text">
-         <string>0</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="4" rowspan="4">
        <spacer name="verticalSpacer_5">
         <property name="orientation">
@@ -150,6 +139,17 @@ font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
         </property>
         <property name="text">
          <string> Song 2</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="QLabel" name="label_4">
+        <property name="styleSheet">
+         <string notr="true">color: rgb(255, 255, 255);
+font: 9pt &quot;MS Shell Dlg 2&quot;;</string>
+        </property>
+        <property name="text">
+         <string>0</string>
         </property>
        </widget>
       </item>
@@ -283,10 +283,16 @@ font: 75 11pt &quot;MS Shell Dlg 2&quot;;</string>
    <property name="text">
     <string>Browse songs</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
   </action>
   <action name="actionClear">
    <property name="text">
     <string>Clear</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
    </property>
   </action>
   <action name="actionNew_tab">
@@ -297,6 +303,9 @@ font: 75 11pt &quot;MS Shell Dlg 2&quot;;</string>
   <action name="New_window">
    <property name="text">
     <string>New window</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
   </action>
  </widget>
