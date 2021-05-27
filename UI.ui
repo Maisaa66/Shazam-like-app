@@ -272,7 +272,7 @@ font: 75 11pt &quot;MS Shell Dlg 2&quot;;</string>
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionNew_window"/>
+    <addaction name="New_window"/>
     <addaction name="Browse_songs"/>
     <addaction name="actionClear"/>
    </widget>
@@ -294,7 +294,7 @@ font: 75 11pt &quot;MS Shell Dlg 2&quot;;</string>
     <string>New tab</string>
    </property>
   </action>
-  <action name="actionNew_window">
+  <action name="New_window">
    <property name="text">
     <string>New window</string>
    </property>
