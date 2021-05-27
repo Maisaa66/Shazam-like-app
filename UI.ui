@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>mainWindow</class>
+ <widget class="QMainWindow" name="mainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Songs Recognizer</string>
   </property>
   <property name="styleSheet">
    <string notr="true">color: rgb(255, 255, 255);
@@ -21,19 +21,6 @@ background-color: rgb(47, 47, 77);</string>
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="2" rowspan="3">
-       <spacer name="verticalSpacer_3">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
       <item row="5" column="3">
        <widget class="QSlider" name="mixingSlider">
         <property name="maximum">
@@ -56,16 +43,18 @@ background-color: rgb(47, 47, 77);</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="2">
-       <widget class="QLabel" name="label_4">
-        <property name="styleSheet">
-         <string notr="true">color: rgb(255, 255, 255);
-font: 9pt &quot;MS Shell Dlg 2&quot;;</string>
+      <item row="1" column="2" rowspan="3">
+       <spacer name="verticalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
         </property>
-        <property name="text">
-         <string>0</string>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
         </property>
-       </widget>
+       </spacer>
       </item>
       <item row="0" column="5" rowspan="4">
        <spacer name="verticalSpacer_4">
@@ -79,6 +68,30 @@ font: 9pt &quot;MS Shell Dlg 2&quot;;</string>
          </size>
         </property>
        </spacer>
+      </item>
+      <item row="4" column="0" colspan="6">
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="5" column="2">
+       <widget class="QLabel" name="label_4">
+        <property name="styleSheet">
+         <string notr="true">color: rgb(255, 255, 255);
+font: 9pt &quot;MS Shell Dlg 2&quot;;</string>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
       </item>
       <item row="0" column="4" rowspan="4">
        <spacer name="verticalSpacer_5">
@@ -104,19 +117,6 @@ font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
          <string> Song 1</string>
         </property>
        </widget>
-      </item>
-      <item row="4" column="0" colspan="6">
-       <spacer name="horizontalSpacer_4">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
       </item>
       <item row="5" column="1">
        <widget class="QLabel" name="label_5">
@@ -229,8 +229,15 @@ font: 75 11pt &quot;MS Shell Dlg 2&quot;;</string>
         </property>
        </spacer>
       </item>
+      <item row="0" column="3">
+       <widget class="QPushButton" name="searchButton">
+        <property name="text">
+         <string>Search</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="1" colspan="3">
-       <widget class="QTableView" name="resultsTable">
+       <widget class="QTableWidget" name="resultsTable">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -245,13 +252,6 @@ font: 75 11pt &quot;MS Shell Dlg 2&quot;;</string>
         </property>
         <property name="alternatingRowColors">
          <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="QPushButton" name="searchButton">
-        <property name="text">
-         <string>Search</string>
         </property>
        </widget>
       </item>

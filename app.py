@@ -9,6 +9,7 @@ from pydub import AudioSegment
 import librosa.display
 import numpy as np
 import imagehash
+from tempfile import mktemp
 import pylab
 
 
@@ -24,6 +25,8 @@ class Shazam(QtWidgets.QMainWindow):
         except:
             pass
 
+        self.wavesongs = [0, 0]
+        self.samplingFrequencies = [0, 0]
         self.songsLabel = [self.song1, self.song2]
         self.paths = []
 
@@ -33,15 +36,26 @@ class Shazam(QtWidgets.QMainWindow):
 
         self.songName, self.select_song = QFileDialog.getOpenFileNames(
             self, 'Choose the Songs', os.getenv('HOME'), "mp3(*.mp3)")
-        print(self.songName)
+        #print(self.songName)
 
         for i, name in enumerate(self.songName, start=1):
             # extract file name
             self.paths.append(os.path.basename(name))
-        print(name)
+        #print(name)
 
         for i in range(2):
             self.songsLabel[i].setText(self.paths[i])
+
+        for i in range(2):
+            mp3_audio = AudioSegment.from_file(self.songName[i], format="mp3")[
+                :60000]  # read mp3 & take only the first 60 seconds
+            waveName = mktemp('.wav')  # use temporary file
+            mp3_audio.export(waveName, format="wav")  # convert to wav
+            self.wavesongs[i], self.samplingFrequencies[i] = librosa.load(
+                waveName)
+
+        
+
 
 
 def main():
