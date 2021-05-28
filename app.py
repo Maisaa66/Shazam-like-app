@@ -90,6 +90,14 @@ class Shazam(QtWidgets.QMainWindow):
         for i in range(2):
             self.saveImage(self.featuresMethods[i]+'.png',
                            self.features[i].T, None, self.samplingFrequencies[0])
+            
+        # self.hashingData(self.features)
+
+            
+    # def hashingData(self, features):
+    #     for i in range(2):
+    #         hashcode = imagehash.phash(Image.fromarray(features[i]) ) #We will use Perceptual hashing 
+    #         print(str(hashcode))            
 
     def make_new_window(self):
         self.new_window = Shazam()
