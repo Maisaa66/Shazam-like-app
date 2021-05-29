@@ -10,13 +10,13 @@ import xlwt
 # Here we create xls sheet of database (songs) and its features hashing values
 workbook = xlwt.Workbook()
 sheet = workbook.add_sheet("hashes")
-n=0
-m=0
-l=1
-v=0
+row=0
+column=0
+hashRow=1
+hashColumn=0
 paths=[]
 songs_name=[]
-feature=['Mfcc','Chroma']
+features=['Chroma', 'Mfcc']
 #read the file that containes the songs and if its ending with mp3 get its name so we can use it in the xls sheet
 directory=r'Songs'
 for filename in os.listdir(directory):
@@ -25,14 +25,14 @@ for filename in os.listdir(directory):
          songs_name.append(os.path.splitext(filename)[0])
         
 # writing features name in rows of xls
-for t in feature:
-    m+=1
-    sheet.write(0,m,t)
+for feature in features:
+    row+=1
+    sheet.write(0,row,feature)
     
 # writing songs name in columns of xls
-for o in songs_name:
-       v+=1
-       sheet.write(v,0,o)
+for song in songs_name:
+       column+=1
+       sheet.write(column,0,song)
     
 for i in paths:
     #getting the path of each song in the file and convert it into wave
@@ -49,11 +49,11 @@ for i in paths:
     hash_chroma_stft=str((imagehash.phash(Image.fromarray(chroma_stft))))
     hashes=[hash_chroma_stft, hash_mfcc]
     #Write each hashing value in the xls sheet to its crossponding feature and song name and save file
-    for k in hashes:
-       n+=1
-       sheet.write(l,n,k)
-    n=0
-    l+=1
+    for Hash in hashes:
+       hashColumn+=1
+       sheet.write(hashRow,hashColumn,Hash)
+    hashColumn=0
+    hashRow+=1
     hashes.clear()
 workbook.save("featuresHashes.xls")
 
