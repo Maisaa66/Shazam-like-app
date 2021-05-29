@@ -47,10 +47,10 @@ class Shazam(QtWidgets.QMainWindow):
             self.paths.append(os.path.basename(name))
         # print(name)
 
-        for i in range(2):
+        for i in range(len(self.songName)):
             self.songsLabel[i].setText(self.paths[i])
 
-        for i in range(2):
+        for i in range(len(self.songName)):
             mp3_audio = AudioSegment.from_file(self.songName[i], format="mp3")[
                 :60000]  # read mp3 & take only the first 60 seconds
             waveName = mktemp('.wav')  # use temporary file
