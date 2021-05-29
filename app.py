@@ -38,7 +38,7 @@ class Shazam(QtWidgets.QMainWindow):
 
     def browse(self):
 
-        self.songName, self.select_song = QFileDialog.getOpenFileNames(
+        self.songName, _ = QFileDialog.getOpenFileNames(
             self, 'Choose the Songs', os.getenv('HOME'), "mp3(*.mp3)")
         # print(self.songName)
 
@@ -60,8 +60,7 @@ class Shazam(QtWidgets.QMainWindow):
 
     def Mixer(self):
         mixingRatio = self.mixingSlider.value() / 100
-        self.newSong = mixingRatio * \
-            self.wavesongs[0] + (1-mixingRatio) * self.wavesongs[1]
+        self.newSong = (mixingRatio * self.wavesongs[0]) + ((1-mixingRatio) * self.wavesongs[1])
         self.sepctrogram()
 
     def sepctrogram(self):
