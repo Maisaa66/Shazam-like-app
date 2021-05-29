@@ -11,6 +11,7 @@ import numpy as np
 from tempfile import mktemp
 import pylab
 from PIL import Image
+import imagehash
 
 
 class Shazam(QtWidgets.QMainWindow):
@@ -27,6 +28,7 @@ class Shazam(QtWidgets.QMainWindow):
 
         self.wavesongs = [0, 0]
         self.samplingFrequencies = [0, 0]
+        self.newSong = []
         self.songsLabel = [self.song1, self.song2]
         self.mixingSlider.valueChanged.connect(lambda: self.Mixer())
         self.paths = []
@@ -48,55 +50,74 @@ class Shazam(QtWidgets.QMainWindow):
         # print(name)
 
         for i in range(len(self.songName)):
+            # add the song name in UI_label
             self.songsLabel[i].setText(self.paths[i])
+        self.converting(self.songName)
+        print(len(self.songName))
 
-        for i in range(len(self.songName)):
-            mp3_audio = AudioSegment.from_file(self.songName[i], format="mp3")[
+        # for i in range(len(self.songName)):
+        #     mp3_audio = AudioSegment.from_file(self.songName[i], format="mp3")[
+        #         :60000]  # read mp3 & take only the first 60 seconds
+        #     waveName = mktemp('.wav')  # use temporary file
+        #     mp3_audio.export(waveName, format="wav")  # convert to wav
+        #     self.wavesongs[i], self.samplingFrequencies[i] = librosa.load(
+        #         waveName)
+
+    def converting(self, path):
+
+        for i in range(len(path)):
+            mp3_audio = AudioSegment.from_file(path[i], format="mp3")[
                 :60000]  # read mp3 & take only the first 60 seconds
-            waveName = mktemp('.wav')  # use temporary file
-            mp3_audio.export(waveName, format="wav")  # convert to wav
+            wname = mktemp('.wav')  # use temporary file
+            mp3_audio.export(wname, format="wav")  # convert to wav
             self.wavesongs[i], self.samplingFrequencies[i] = librosa.load(
-                waveName)
+                wname)
+
+        self.spectrogram(self.wavesongs)
+        self.extractFeatures(self.wavesongs)
 
     def Mixer(self):
         mixingRatio = self.mixingSlider.value() / 100
-        self.newSong = (mixingRatio * self.wavesongs[0]) + ((1-mixingRatio) * self.wavesongs[1])
-        self.sepctrogram()
+        self.newSong.append(
+            np.add(mixingRatio * self.wavesongs[0], self.wavesongs[1] * (1-mixingRatio)))
+        self.spectrogram(self.newSong)
+        self.extractFeatures(self.newSong)
 
-    def sepctrogram(self):
-        spectro = librosa.amplitude_to_db(
-            np.abs(librosa.stft(self.newSong)), ref=np.max)
-        self.saveImage("mixingSpectrogram.png", spectro, "linear",
-                       22050)  # 22050 is the default
-        self.extractFeatures()
+    def spectrogram(self, song):
+        for i in range(len(song)):
+            spectroPath = "mixingSpectrogram"+str(i)+".png"
+            D = librosa.amplitude_to_db(
+                np.abs(librosa.stft(song[i])), ref=np.max)
+            self.saveImage(spectroPath, D, "linear",
+                           22050)  # 22050 is the default
 
     def saveImage(self, path, viewed, y, sampleRate):
-        Spectro_Path = path
         pylab.axis('off')  # no axis
         pylab.axes([0., 0., 1., 1.], frameon=False, xticks=[],
                    yticks=[])  # Remove the white edge
         librosa.display.specshow(viewed, y_axis=y, sr=sampleRate)
-        pylab.savefig(Spectro_Path, bbox_inches=None, pad_inches=0)
+        pylab.savefig(path, bbox_inches=None, pad_inches=0)
         pylab.close()
 
-    def extractFeatures(self):
-        self.features.append(librosa.feature.spectral_centroid(
-            y=self.newSong, sr=self.samplingFrequencies[0]))
+    def extractFeatures(self, song):
+        for i in range(len(song)):
+            self.features.append(librosa.feature.chroma_stft(
+                y=song[i], sr=self.samplingFrequencies[0]))
 
-        self.features.append(librosa.feature.spectral_rolloff(
-            y=self.newSong, sr=self.samplingFrequencies[0]))
+            self.features.append(librosa.feature.mfcc(
+                y=song[i], sr=self.samplingFrequencies[0]))
 
         for i in range(2):
             self.saveImage(self.featuresMethods[i]+'.png',
                            self.features[i].T, None, self.samplingFrequencies[0])
-            
-        # self.hashingData(self.features)
 
-            
-    # def hashingData(self, features):
-    #     for i in range(2):
-    #         hashcode = imagehash.phash(Image.fromarray(features[i]) ) #We will use Perceptual hashing 
-    #         print(str(hashcode))            
+        self.hashingData(self.features)
+
+    def hashingData(self, features):
+        for i in range(len(features)):
+            # We will use Perceptual hashing
+            hashcode = imagehash.phash(Image.fromarray(features[i]))
+            print(str(hashcode))
 
     def make_new_window(self):
         self.new_window = Shazam()
