@@ -84,7 +84,7 @@ class Shazam(QtWidgets.QMainWindow):
         self.extractFeatures(self.newSong)
 
     def spectrogram(self, song):
-        for i in range(len(song)):
+        for i in range(len(self.paths)):
             spectroPath = "mixingSpectrogram"+str(i)+".png"
             D = librosa.amplitude_to_db(
                 np.abs(librosa.stft(song[i])), ref=np.max)
@@ -100,7 +100,7 @@ class Shazam(QtWidgets.QMainWindow):
         pylab.close()
 
     def extractFeatures(self, song):
-        for i in range(len(song)):
+        for i in range(len(self.paths)):
             self.features.append(librosa.feature.chroma_stft(
                 y=song[i], sr=self.samplingFrequencies[0]))
 
