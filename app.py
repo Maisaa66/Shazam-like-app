@@ -38,6 +38,8 @@ class Shazam(QtWidgets.QMainWindow):
         self.New_window.triggered.connect(self.make_new_window)
         self.Browse_songs.triggered.connect(lambda: self.browse())
 
+        
+
     def browse(self):
 
         self.songName, _ = QFileDialog.getOpenFileNames(
@@ -119,7 +121,12 @@ class Shazam(QtWidgets.QMainWindow):
             hashcode = imagehash.phash(Image.fromarray(features[i]))
             print(str(hashcode))
 
-    def showTable(self, matchingSongs, similarityIndex):
+    def showTable(self, matchingSongs):
+        """ 
+            matchingSongs can be list of lists
+            for example matchingSongs = [song1, song2]
+            and song1=[name,similarityIndex]
+        """
         # set row and column count
         self.resultsTable.setRowCount(len(matchingSongs))
         self.resultsTable.setColumnCount(2)
@@ -127,11 +134,11 @@ class Shazam(QtWidgets.QMainWindow):
         #displaying the data in the table
         for row in range(len(matchingSongs)):
 
-            song_name = QTableWidgetItem(str(matchingSongs[row]))
-            SI = QTableWidgetItem(str(similarityIndex[row]))
-            self.resultsTable.setItem(row, 0, song_name)
-            self.resultsTable.setItem(row, 1, SI)
-            self.resultsTable.verticalHeader().setSectionResizeMode(row, QtWidgets.QHeaderView.Stretch)
+            name = QTableWidgetItem(str(matchingSongs[row][0]))
+            similarityIndex = QTableWidgetItem(str(matchingSongs[row][1]))
+            self.resultsTable.setItem(row, 0, name)
+            self.resultsTable.setItem(row, 1, similarityIndex)
+            self.resultsTable.verticalHeader().setSectionResizeMode(row, QtWidgets.QHeaderView.Stretch) 
 
         self.resultsTable.setHorizontalHeaderLabels(['Matching Songs', 'Similarity Index'])
         self.resultsTable.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
