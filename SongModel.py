@@ -23,10 +23,9 @@ class SongModel(object):
 
     def update_mixer(self, ratio):
         self.ratio = ratio
-        if len(self.wavsongs_list) == 2:
-            self.wavsong = np.add(
-                self.ratio * self.wavsongs_list[0], self.wavsongs_list[1] * (1-self.ratio))
-            return self.wavsong
+        self.wavsong = np.add(
+            self.ratio * self.wavsongs_list[0], self.wavsongs_list[1] * (1-self.ratio))
+        return self.wavsong
 
     def convert_to_wav(self):
         if len(self.song_paths) == 2:
@@ -53,8 +52,10 @@ class SongModel(object):
             return self.wavsong
 
     def extract_features(self):
-        self.features_list.append(librosa.feature.chroma_stft(y=self.wavsong, sr=self.samplingfreq))
-        self.features_list.append(librosa.feature.mfcc(y=self.wavsong, sr=self.samplingfreq))
+        self.features_list.append(librosa.feature.chroma_stft(
+            y=self.wavsong, sr=self.samplingfreq))
+        self.features_list.append(librosa.feature.mfcc(
+            y=self.wavsong, sr=self.samplingfreq))
         return self.features_list
 
     def hashing(self):
@@ -63,18 +64,19 @@ class SongModel(object):
             # convert the array of the feature to a PIL image
             hashcode = imagehash.phash(Image.fromarray(self.features_list[i]))
             self.hashes_list.append(hashcode)
-    
+
     def hashing_script(self):
         self.extract_features()
         self.hashing()
-        return list(self.hashes_list) #momkn a7tag a5leha str(self.hashes_list)
-    
+        # momkn a7tag a5leha str(self.hashes_list)
+        return list(self.hashes_list)
+
         # song_hashes = {}
         # song_hashes['chroma_stft'] = str(self.hashes_list[0])
         # song_hashes['mfcc'] = str(self.hashes_list[1])
 
-
     # ht7sb el difference between mel_song_hash w ben mel_allsongsinDB_hash
+
     def hamming_distance(self, first_hash, second_hash):
         # Calculate difference between selected-song-hash and another hash in db
         ''' calculates the hamming distance between two strings which represents the differences between them '''

@@ -41,11 +41,10 @@ class Shazam(QtWidgets.QMainWindow):
 
         self.mixing_slider.setEnabled(False)
 
-        self.selected_songs, self.paths, self.loaded_song_hashes, self.SI_list = [], [], [], []
+        self.selected_songs, self.paths, self.loaded_song_hashes = [], [], []
         self.songsLabel = [self.song1, self.song2]
         self.ratio = 0.5  # initial value for slider = 50
         self.database_nrows = 0
-        self.resultsTable = QTableWidget()
 
     def browse(self):
         self.selected_songs = QFileDialog.getOpenFileNames(
@@ -77,6 +76,7 @@ class Shazam(QtWidgets.QMainWindow):
     def mixer(self):
         self.ratio = (self.mixing_slider.value() / 100)
         self.song_model.update_mixer(self.ratio)
+        return self.song_model
 
     def hamming_distance(self, first_hash, second_hash):
         # Calculate difference between selected-song-hash and another hash in db
@@ -130,7 +130,7 @@ class Shazam(QtWidgets.QMainWindow):
         self.resultsTable.setRowCount(self.database_nrows)
         self.resultsTable.setColumnCount(2)
 
-        #displaying the data in the table
+        # displaying the data in the table
         for row in range(self.database_nrows):
 
             song_name = QTableWidgetItem(str(results[0][row]))
@@ -138,18 +138,20 @@ class Shazam(QtWidgets.QMainWindow):
             self.resultsTable.setItem(row, 0, song_name)
             self.resultsTable.setItem(row, 1, similarity_idx)
             # self.resultsTable.verticalHeader().setSectionResizeMode(row, QtWidgets.QHeaderView.Stretch)
-            
+
         self.resultsTable.horizontalHeader().setStretchLastSection(True)
         self.resultsTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        
-        self.resultsTable.setHorizontalHeaderLabels(['Matching Songs', 'Similarity Index'])
-        
-        # self.resultsTable.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
-        # self.resultsTable.horizontalHeader().setStyleSheet("color: rgb(47, 47, 77)")
-        # self.resultsTable.verticalHeader().setStyleSheet("color: rgb(47, 47, 77)")
 
+        self.resultsTable.setHorizontalHeaderLabels(
+            ['Matching Songs', 'Similarity Index'])
+
+        self.resultsTable.horizontalHeader().setSectionResizeMode(
+            1, QtWidgets.QHeaderView.Stretch)
+        self.resultsTable.horizontalHeader().setStyleSheet("color: rgb(47, 47, 77)")
+        self.resultsTable.verticalHeader().setStyleSheet("color: rgb(47, 47, 77)")
+        self.resultsTable.sortItems(1, QtCore.Qt.AscendingOrder)
         self.resultsTable.show()
-        
+
     def make_new_window(self):
         self.new_window = Shazam()
         self.new_window.show()
