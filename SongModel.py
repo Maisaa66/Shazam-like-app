@@ -22,6 +22,7 @@ class SongModel(object):
         self.convert_to_wav()
 
     def update_mixer(self, ratio):
+
         self.ratio = ratio
         self.wavsong = np.add(
             self.ratio * self.wavsongs_list[0], self.wavsongs_list[1] * (1-self.ratio))
@@ -52,24 +53,31 @@ class SongModel(object):
             return self.wavsong
 
     def extract_features(self):
+        self.features_list.clear()
+
         self.features_list.append(librosa.feature.chroma_stft(
             y=self.wavsong, sr=self.samplingfreq))
         self.features_list.append(librosa.feature.mfcc(
             y=self.wavsong, sr=self.samplingfreq))
+        self.features_list.append(librosa.feature.melspectrogram(
+            y=self.wavsong, sr=self.samplingfreq))
+
         return self.features_list
 
     def hashing(self):
+        self.hashes_list.clear()
         # We will use Perceptual hashing
         for i in range(len(self.features_list)):
             # convert the array of the feature to a PIL image
-            hashcode = imagehash.phash(Image.fromarray(self.features_list[i]))
-            self.hashes_list.append(hashcode)
+            newhash = Image.fromarray(self.features_list[i])
+            finalhash = imagehash.phash(newhash, hash_size=16).__str__()
+            # hashcode = imagehash.phash(Image.fromarray(self.features_list[i]))
+            self.hashes_list.append(finalhash)
 
     def hashing_script(self):
         self.extract_features()
         self.hashing()
-        # momkn a7tag a5leha str(self.hashes_list)
-        return list(self.hashes_list)
+        return self.hashes_list
 
         # song_hashes = {}
         # song_hashes['chroma_stft'] = str(self.hashes_list[0])
@@ -93,6 +101,3 @@ class SongModel(object):
             self.spectrogram_data, y_axis=y, sr=self.samplingfreq)
         pylab.savefig(path, bbox_inches=None, pad_inches=0)
         pylab.close()
-
-        # duration_saving = time.time() - start_savingImg
-        # print("saving img time: ", duration_saving)

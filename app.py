@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QFileDialog, QMessageBox, QHeaderView
-from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import QSettings, endl
 from autologging import logged, TRACE, traced
 from SongModel import SongModel
 import numpy as np
@@ -94,12 +94,17 @@ class Shazam(QtWidgets.QMainWindow):
     def search_button(self):
 
         self.loaded_song_hashes = self.song_model.hashing_script()
+
         chroma_hash_selected_song = str(self.loaded_song_hashes[0])
+
         mfcc_hash_selected_song = str(self.loaded_song_hashes[1])
 
-        database_file = xlrd.open_workbook("featuresHashes.xls")
+        mel_hash_selected_song = str(self.loaded_song_hashes[2])
+
+        database_file = xlrd.open_workbook("featuresHashes3.xls")
         database_sheet = database_file.sheet_by_index(0)
         self.database_nrows = database_sheet.nrows - 1
+
         # momkn a3ml nested for w a2ll el klam da, kol 7aga leha index ad5lha fe list
         results_list = []
         results_si, results_names = [], []
@@ -108,17 +113,27 @@ class Shazam(QtWidgets.QMainWindow):
             songname_db = str(database_sheet.cell_value(rowx=i+1, colx=0))
             chroma_hash_db = str(database_sheet.cell_value(rowx=i+1, colx=1))
             mfcc_hash_db = str(database_sheet.cell_value(rowx=i+1, colx=2))
+            mel_hash_db = str(database_sheet.cell_value(rowx=i+1, colx=3))
+
             chroma_hamming_distance = self.song_model.hamming_distance(
                 chroma_hash_selected_song, chroma_hash_db)
+
             mfcc_hamming_distance = self.song_model.hamming_distance(
                 mfcc_hash_selected_song, mfcc_hash_db)
-            avg_diff = (chroma_hamming_distance+mfcc_hamming_distance) / 2
+
+            mel_hamming_distance = self.song_model.hamming_distance(
+                mel_hash_selected_song, mel_hash_db)
+
+            avg_diff = (chroma_hamming_distance +
+                        mfcc_hamming_distance+mel_hamming_distance) / 3
             mapped_avg_diff = self.map_value(avg_diff, 0, 256, 0, 1)
+
             similarity_idx = int((1-mapped_avg_diff)*100)
             results_names.append(songname_db)
             results_si.append(similarity_idx)
 
         results_list.append(results_names)
+
         results_list.append(results_si)
         self.showTable(results_list)
         # momkn yb2a dict gwah list
@@ -126,15 +141,18 @@ class Shazam(QtWidgets.QMainWindow):
         # update table
 
     def showTable(self, results):
+        self.resultsTable.clear()
+        self.resultsTable.setRowCount(0)
         # set row and column count
         self.resultsTable.setRowCount(self.database_nrows)
         self.resultsTable.setColumnCount(2)
+        # self.similarityResults.sort(key= lambda x: x[1], reverse=True)
 
         # displaying the data in the table
         for row in range(self.database_nrows):
 
             song_name = QTableWidgetItem(str(results[0][row]))
-            similarity_idx = QTableWidgetItem(str(results[1][row]))
+            similarity_idx = QTableWidgetItem(str((results[1][row])))
             self.resultsTable.setItem(row, 0, song_name)
             self.resultsTable.setItem(row, 1, similarity_idx)
             # self.resultsTable.verticalHeader().setSectionResizeMode(row, QtWidgets.QHeaderView.Stretch)
