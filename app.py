@@ -1,19 +1,27 @@
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
-from PyQt5.QtWidgets import QMainWindow, QApplication, QLabel, QFileDialog, QAction, QTableWidget
-from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QFileDialog, QMessageBox, QHeaderView
 from PyQt5.QtCore import QSettings
+from autologging import logged, TRACE, traced
+from SongModel import SongModel
+import numpy as np
 import os
 import sys
-import librosa
-from pydub import AudioSegment
-import librosa.display
-import numpy as np
-from tempfile import mktemp
-import pylab
-from PIL import Image
+import time
+import logging
+import xlrd
 import imagehash
 
+# Create and configure logger
+LOG_FORMAT = "%(levelname)s:%(filename)s,%(lineno)d:%(name)s.%(funcName)s:%(message)s"
+logging.basicConfig(filename="Shazam.log",
+                    level=TRACE,
+                    format=LOG_FORMAT,
+                    filemode='w')
+logger = logging.getLogger()
 
+
+@ traced
+@ logged
 class Shazam(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
@@ -26,130 +34,132 @@ class Shazam(QtWidgets.QMainWindow):
         except:
             pass
 
-        self.wavesongs = [0, 0]
-        self.samplingFrequencies = [0, 0]
-        self.newSong = []
-        self.songsLabel = [self.song1, self.song2]
-        self.mixingSlider.valueChanged.connect(lambda: self.Mixer())
-        self.paths = []
-        self.featuresMethods = ['spectral_centroid', 'spectral_rolloff']
-        self.features = []
-
-        self.New_window.triggered.connect(self.make_new_window)
+        self.mixing_slider.valueChanged.connect(lambda: self.mixer())
+        self.New_window.triggered.connect(lambda: self.make_new_window())
         self.Browse_songs.triggered.connect(lambda: self.browse())
+        self.searchButton.clicked.connect(lambda: self.search_button())
 
-        
+        self.mixing_slider.setEnabled(False)
+
+        self.selected_songs, self.paths, self.loaded_song_hashes, self.SI_list = [], [], [], []
+        self.songsLabel = [self.song1, self.song2]
+        self.ratio = 0.5  # initial value for slider = 50
+        self.database_nrows = 0
+        self.resultsTable = QTableWidget()
 
     def browse(self):
-
-        self.songName, _ = QFileDialog.getOpenFileNames(
+        self.selected_songs = QFileDialog.getOpenFileNames(
             self, 'Choose the Songs', os.getenv('HOME'), "mp3(*.mp3)")
-        # print(self.songName)
+        self.selected_songs = self.selected_songs[0]
+        # Check conditions: number of selected songs,
+        if len(self.selected_songs) > 2:
+            # Showing warning msg and return to selection panel
+            self.warning_msg_generator(
+                "Error in selected Songs ", "You can't select more than two songs.")
+            logger.info("The user selected more than 2 songs")
+            return self.browse()
+        else:
+            if len(self.selected_songs) == 2:
+                self.mixing_slider.setEnabled(True)
+            self.song_model = SongModel(self.selected_songs, self.ratio)
 
-        for i, name in enumerate(self.songName, start=1):
-            # extract file name
-            self.paths.append(os.path.basename(name))
-        # print(name)
+            for i in range(len(self.selected_songs)):
+                '''# Set lables with selected files'''
+                self.paths.append(os.path.basename(self.selected_songs[i]))
+                self.songsLabel[i].setText(self.paths[i])
 
-        for i in range(len(self.songName)):
-            # add the song name in UI_label
-            self.songsLabel[i].setText(self.paths[i])
-        self.converting(self.songName)
-        print(len(self.songName))
+            # you can extract and hash from database-related function not here
+            # self.song_model.extract_features()
+            # self.hashcode = self.song_model.hashing()
+            logging.info(
+                "Browsing done succussfelly, song_model created as well.")
 
-        # for i in range(len(self.songName)):
-        #     mp3_audio = AudioSegment.from_file(self.songName[i], format="mp3")[
-        #         :60000]  # read mp3 & take only the first 60 seconds
-        #     waveName = mktemp('.wav')  # use temporary file
-        #     mp3_audio.export(waveName, format="wav")  # convert to wav
-        #     self.wavesongs[i], self.samplingFrequencies[i] = librosa.load(
-        #         waveName)
+    def mixer(self):
+        self.ratio = (self.mixing_slider.value() / 100)
+        self.song_model.update_mixer(self.ratio)
 
-    def converting(self, path):
+    def hamming_distance(self, first_hash, second_hash):
+        # Calculate difference between selected-song-hash and another hash in db
+        ''' calculates the hamming distance between two strings which represents the differences between them '''
+        difference = imagehash.hex_to_hash(
+            first_hash)-imagehash.hex_to_hash(second_hash)
+        return difference
 
-        for i in range(len(path)):
-            mp3_audio = AudioSegment.from_file(path[i], format="mp3")[
-                :60000]  # read mp3 & take only the first 60 seconds
-            wname = mktemp('.wav')  # use temporary file
-            mp3_audio.export(wname, format="wav")  # convert to wav
-            self.wavesongs[i], self.samplingFrequencies[i] = librosa.load(
-                wname)
+    def map_value(self, inputValue, inputMin, inputMax, outputMin, outputMax):
+        """map_value maps a value from a certain range to another."""
 
-        self.spectrogram(self.wavesongs)
-        self.extractFeatures(self.wavesongs)
+        slope = (outputMax-outputMin) / (inputMax-inputMin)
+        return outputMin + slope*(inputValue-inputMin)
 
-    def Mixer(self):
-        mixingRatio = self.mixingSlider.value() / 100
-        self.newSong.append(
-            np.add(mixingRatio * self.wavesongs[0], self.wavesongs[1] * (1-mixingRatio)))
-        self.spectrogram(self.newSong)
-        self.extractFeatures(self.newSong)
+    def search_button(self):
 
-    def spectrogram(self, song):
-        for i in range(len(self.paths)):
-            spectroPath = "mixingSpectrogram"+str(i)+".png"
-            D = librosa.amplitude_to_db(
-                np.abs(librosa.stft(song[i])), ref=np.max)
-            self.saveImage(spectroPath, D, "linear",
-                           22050)  # 22050 is the default
+        self.loaded_song_hashes = self.song_model.hashing_script()
+        chroma_hash_selected_song = str(self.loaded_song_hashes[0])
+        mfcc_hash_selected_song = str(self.loaded_song_hashes[1])
 
-    def saveImage(self, path, viewed, y, sampleRate):
-        pylab.axis('off')  # no axis
-        pylab.axes([0., 0., 1., 1.], frameon=False, xticks=[],
-                   yticks=[])  # Remove the white edge
-        librosa.display.specshow(viewed, y_axis=y, sr=sampleRate)
-        pylab.savefig(path, bbox_inches=None, pad_inches=0)
-        pylab.close()
+        database_file = xlrd.open_workbook("featuresHashes.xls")
+        database_sheet = database_file.sheet_by_index(0)
+        self.database_nrows = database_sheet.nrows - 1
+        # momkn a3ml nested for w a2ll el klam da, kol 7aga leha index ad5lha fe list
+        results_list = []
+        results_si, results_names = [], []
 
-    def extractFeatures(self, song):
-        for i in range(len(self.paths)):
-            self.features.append(librosa.feature.chroma_stft(
-                y=song[i], sr=self.samplingFrequencies[0]))
+        for i in range(self.database_nrows):  # -1 to ignore rows of labels
+            songname_db = str(database_sheet.cell_value(rowx=i+1, colx=0))
+            chroma_hash_db = str(database_sheet.cell_value(rowx=i+1, colx=1))
+            mfcc_hash_db = str(database_sheet.cell_value(rowx=i+1, colx=2))
+            chroma_hamming_distance = self.song_model.hamming_distance(
+                chroma_hash_selected_song, chroma_hash_db)
+            mfcc_hamming_distance = self.song_model.hamming_distance(
+                mfcc_hash_selected_song, mfcc_hash_db)
+            avg_diff = (chroma_hamming_distance+mfcc_hamming_distance) / 2
+            mapped_avg_diff = self.map_value(avg_diff, 0, 256, 0, 1)
+            similarity_idx = int((1-mapped_avg_diff)*100)
+            results_names.append(songname_db)
+            results_si.append(similarity_idx)
 
-            self.features.append(librosa.feature.mfcc(
-                y=song[i], sr=self.samplingFrequencies[0]))
+        results_list.append(results_names)
+        results_list.append(results_si)
+        self.showTable(results_list)
+        # momkn yb2a dict gwah list
+        # results = {'song_name': songname_db, 'SI': similarity_idx}
+        # update table
 
-        for i in range(2):
-            self.saveImage(self.featuresMethods[i]+'.png',
-                           self.features[i].T, None, self.samplingFrequencies[0])
-
-        self.hashingData(self.features)
-
-    def hashingData(self, features):
-        for i in range(len(features)):
-            # We will use Perceptual hashing
-            hashcode = imagehash.phash(Image.fromarray(features[i]))
-            print(str(hashcode))
-
-    def showTable(self, matchingSongs):
-        """ 
-            matchingSongs can be list of lists
-            for example matchingSongs = [song1, song2]
-            and song1=[name,similarityIndex]
-        """
+    def showTable(self, results):
         # set row and column count
-        self.resultsTable.setRowCount(len(matchingSongs))
+        self.resultsTable.setRowCount(self.database_nrows)
         self.resultsTable.setColumnCount(2)
-        
+
         #displaying the data in the table
-        for row in range(len(matchingSongs)):
+        for row in range(self.database_nrows):
 
-            name = QTableWidgetItem(str(matchingSongs[row][0]))
-            similarityIndex = QTableWidgetItem(str(matchingSongs[row][1]))
-            self.resultsTable.setItem(row, 0, name)
-            self.resultsTable.setItem(row, 1, similarityIndex)
-            self.resultsTable.verticalHeader().setSectionResizeMode(row, QtWidgets.QHeaderView.Stretch) 
-
-        self.resultsTable.setHorizontalHeaderLabels(['Matching Songs', 'Similarity Index'])
-        self.resultsTable.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
-        self.resultsTable.horizontalHeader().setStyleSheet("color: rgb(47, 47, 77)")
-        self.resultsTable.verticalHeader().setStyleSheet("color: rgb(47, 47, 77)")
+            song_name = QTableWidgetItem(str(results[0][row]))
+            similarity_idx = QTableWidgetItem(str(results[1][row]))
+            self.resultsTable.setItem(row, 0, song_name)
+            self.resultsTable.setItem(row, 1, similarity_idx)
+            # self.resultsTable.verticalHeader().setSectionResizeMode(row, QtWidgets.QHeaderView.Stretch)
             
-        self.resultsTable.show()
+        self.resultsTable.horizontalHeader().setStretchLastSection(True)
+        self.resultsTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        
+        self.resultsTable.setHorizontalHeaderLabels(['Matching Songs', 'Similarity Index'])
+        
+        # self.resultsTable.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
+        # self.resultsTable.horizontalHeader().setStyleSheet("color: rgb(47, 47, 77)")
+        # self.resultsTable.verticalHeader().setStyleSheet("color: rgb(47, 47, 77)")
 
+        self.resultsTable.show()
+        
     def make_new_window(self):
         self.new_window = Shazam()
         self.new_window.show()
+
+    def warning_msg_generator(self, title, text):
+        msg = QMessageBox()
+        msg.setWindowTitle(title)
+        msg.setText(text)
+        msg.setIcon(QMessageBox.Warning)
+        return msg.exec_()
 
 
 def main():

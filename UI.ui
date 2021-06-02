@@ -63,13 +63,13 @@ background-color: rgb(47, 47, 77);</string>
          <bool>true</bool>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: rgb(47, 47, 77);</string>
+         <string notr="true"/>
         </property>
         <property name="sizeAdjustPolicy">
-         <enum>QAbstractScrollArea::AdjustToContents</enum>
+         <enum>QAbstractScrollArea::AdjustIgnored</enum>
         </property>
         <property name="editTriggers">
-         <set>QAbstractItemView::NoEditTriggers</set>
+         <set>QAbstractItemView::AnyKeyPressed|QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
         </property>
         <property name="alternatingRowColors">
          <bool>false</bool>
@@ -125,18 +125,18 @@ font: 75 11pt &quot;MS Shell Dlg 2&quot;;</string>
        </spacer>
       </item>
       <item row="1" column="1">
-       <widget class="QSlider" name="mixingSlider">
+       <widget class="QSlider" name="mixing_slider">
         <property name="maximum">
          <number>100</number>
         </property>
         <property name="singleStep">
-         <number>5</number>
+         <number>10</number>
         </property>
         <property name="pageStep">
-         <number>5</number>
+         <number>10</number>
         </property>
         <property name="value">
-         <number>0</number>
+         <number>50</number>
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -175,7 +175,7 @@ font: 9pt &quot;MS Shell Dlg 2&quot;;</string>
          <number>2</number>
         </property>
         <property name="text">
-         <string>0</string>
+         <string>50</string>
         </property>
        </widget>
       </item>
@@ -226,7 +226,7 @@ font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
      <x>0</x>
      <y>0</y>
      <width>1010</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menufile">
@@ -277,7 +277,7 @@ gridline-color: rgb(255, 255, 255);</string>
  <resources/>
  <connections>
   <connection>
-   <sender>mixingSlider</sender>
+   <sender>mixing_slider</sender>
    <signal>valueChanged(int)</signal>
    <receiver>label_4</receiver>
    <slot>setNum(int)</slot>
