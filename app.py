@@ -152,7 +152,7 @@ class Shazam(QtWidgets.QMainWindow):
             1, QtWidgets.QHeaderView.Stretch)
         self.resultsTable.horizontalHeader().setStyleSheet("color: rgb(47, 47, 77)")
         self.resultsTable.verticalHeader().setStyleSheet("color: rgb(47, 47, 77)")
-        self.resultsTable.sortItems(QtCore.Qt.DescendingOrder)
+        self.resultsTable.sortItems(1,QtCore.Qt.DescendingOrder)
         self.resultsTable.show()
 
     def make_new_window(self):
