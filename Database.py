@@ -37,15 +37,18 @@ for i in paths:
     sound.export(wname, format="wav")  # convert to wav
     wavsong, samplingFrequency = librosa.load(wname, duration=60)
     # Mel-Frequency Cepstral Coefficients(MFCCs)
+    
     mfcc = librosa.feature.mfcc(wavsong, samplingFrequency)
-    hash_mfcc =      imagehash.phash(Image.fromarray(mfcc), hash_size= 16).__str__() 
+    tmp_mfcc = Image.fromarray(mfcc, mode='RGB')
+    hash_mfcc = imagehash.phash(tmp_mfcc, hash_size=16).__str__()
+    
     chroma_stft = librosa.feature.chroma_stft(wavsong, samplingFrequency)  # Chroma feature
-    hash_chroma_stft = imagehash.phash(Image.fromarray(chroma_stft), hash_size= 16).__str__() 
-    
-    mel = librosa.feature.melspectrogram(wavsong, samplingFrequency)  # mel feature
-    hash_mel = imagehash.phash(Image.fromarray(mel), hash_size= 16).__str__() 
+    tmp_chroma = Image.fromarray(chroma_stft, mode='RGB')
+    hash_chroma_stft = imagehash.phash(tmp_chroma, hash_size=16).__str__()
 
-    
+    mel = librosa.feature.melspectrogram(wavsong, samplingFrequency)  # mel feature
+    hash_mel = imagehash.phash(Image.fromarray(mel, mode='RGB'), hash_size=16).__str__()
+
     hashes = [hash_mfcc, hash_chroma_stft, hash_mel]
     for k in hashes:
         n += 1
@@ -53,4 +56,4 @@ for i in paths:
     n = 0
     l += 1
     hashes.clear()
-workbook.save("featuresHashes3.xls")
+workbook.save("featuresHashes4.xls")

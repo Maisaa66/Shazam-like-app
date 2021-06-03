@@ -1,3 +1,4 @@
+from typing import final
 from pydub import AudioSegment
 from tempfile import mktemp
 import librosa
@@ -25,7 +26,7 @@ class SongModel(object):
 
         self.ratio = ratio
         self.wavsong = np.add(
-            self.ratio * self.wavsongs_list[0], self.wavsongs_list[1] * (1-self.ratio))
+            self.ratio * self.wavsongs_list[1], self.wavsongs_list[0] * (1-self.ratio))
         return self.wavsong
 
     def convert_to_wav(self):
@@ -69,8 +70,9 @@ class SongModel(object):
         # We will use Perceptual hashing
         for i in range(len(self.features_list)):
             # convert the array of the feature to a PIL image
-            newhash = Image.fromarray(self.features_list[i])
+            newhash = Image.fromarray(self.features_list[i], mode='RGB')
             finalhash = imagehash.phash(newhash, hash_size=16).__str__()
+            print("hashcode: ", finalhash)
             # hashcode = imagehash.phash(Image.fromarray(self.features_list[i]))
             self.hashes_list.append(finalhash)
 

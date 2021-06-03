@@ -67,9 +67,6 @@ class Shazam(QtWidgets.QMainWindow):
                 self.paths.append(os.path.basename(self.selected_songs[i]))
                 self.songsLabel[i].setText(self.paths[i])
 
-            # you can extract and hash from database-related function not here
-            # self.song_model.extract_features()
-            # self.hashcode = self.song_model.hashing()
             logging.info(
                 "Browsing done succussfelly, song_model created as well.")
 
@@ -78,12 +75,6 @@ class Shazam(QtWidgets.QMainWindow):
         self.song_model.update_mixer(self.ratio)
         return self.song_model
 
-    def hamming_distance(self, first_hash, second_hash):
-        # Calculate difference between selected-song-hash and another hash in db
-        ''' calculates the hamming distance between two strings which represents the differences between them '''
-        difference = imagehash.hex_to_hash(
-            first_hash)-imagehash.hex_to_hash(second_hash)
-        return difference
 
     def map_value(self, inputValue, inputMin, inputMax, outputMin, outputMax):
         """map_value maps a value from a certain range to another."""
@@ -95,19 +86,16 @@ class Shazam(QtWidgets.QMainWindow):
 
         self.loaded_song_hashes = self.song_model.hashing_script()
 
-        chroma_hash_selected_song = str(self.loaded_song_hashes[0])
+        chroma_hash_selected_song = self.loaded_song_hashes[1]
+        mfcc_hash_selected_song = self.loaded_song_hashes[0]
+        mel_hash_selected_song = self.loaded_song_hashes[2]
 
-        mfcc_hash_selected_song = str(self.loaded_song_hashes[1])
-
-        mel_hash_selected_song = str(self.loaded_song_hashes[2])
-
-        database_file = xlrd.open_workbook("featuresHashes3.xls")
+        database_file = xlrd.open_workbook("featuresHashes4.xls")
         database_sheet = database_file.sheet_by_index(0)
         self.database_nrows = database_sheet.nrows - 1
 
         # momkn a3ml nested for w a2ll el klam da, kol 7aga leha index ad5lha fe list
-        results_list = []
-        results_si, results_names = [], []
+        results_si, results_names, results_list = [], [], []
 
         for i in range(self.database_nrows):  # -1 to ignore rows of labels
             songname_db = str(database_sheet.cell_value(rowx=i+1, colx=0))
@@ -116,16 +104,15 @@ class Shazam(QtWidgets.QMainWindow):
             mel_hash_db = str(database_sheet.cell_value(rowx=i+1, colx=3))
 
             chroma_hamming_distance = self.song_model.hamming_distance(
-                chroma_hash_selected_song, chroma_hash_db)
-
+                chroma_hash_db, chroma_hash_selected_song)
             mfcc_hamming_distance = self.song_model.hamming_distance(
-                mfcc_hash_selected_song, mfcc_hash_db)
-
+                mfcc_hash_db, mfcc_hash_selected_song)
             mel_hamming_distance = self.song_model.hamming_distance(
                 mel_hash_selected_song, mel_hash_db)
 
             avg_diff = (chroma_hamming_distance +
                         mfcc_hamming_distance+mel_hamming_distance) / 3
+
             mapped_avg_diff = self.map_value(avg_diff, 0, 256, 0, 1)
 
             similarity_idx = int((1-mapped_avg_diff)*100)
@@ -136,9 +123,7 @@ class Shazam(QtWidgets.QMainWindow):
 
         results_list.append(results_si)
         self.showTable(results_list)
-        # momkn yb2a dict gwah list
-        # results = {'song_name': songname_db, 'SI': similarity_idx}
-        # update table
+        
 
     def showTable(self, results):
         self.resultsTable.clear()
@@ -167,7 +152,7 @@ class Shazam(QtWidgets.QMainWindow):
             1, QtWidgets.QHeaderView.Stretch)
         self.resultsTable.horizontalHeader().setStyleSheet("color: rgb(47, 47, 77)")
         self.resultsTable.verticalHeader().setStyleSheet("color: rgb(47, 47, 77)")
-        self.resultsTable.sortItems(1, QtCore.Qt.AscendingOrder)
+        self.resultsTable.sortItems(QtCore.Qt.DescendingOrder)
         self.resultsTable.show()
 
     def make_new_window(self):
