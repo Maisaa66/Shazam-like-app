@@ -2,7 +2,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui, uic
 from PyQt5.QtWidgets import QTableWidgetItem, QFileDialog, QMessageBox, QHeaderView
 from PyQt5.QtCore import QSettings
 from autologging import logged, TRACE, traced
-from SongModel import SongModel
+from songmodel import SongModel
 import os
 import sys
 import logging
